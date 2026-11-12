@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNIVERSAL AI — Precision Studio Core</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Marked for Markdown Parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Highlight.js for Code Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#090d16',
+                        panel: '#0f172a',
+                        surface: '#182234',
+                        surfaceBorder: '#27354a',
+                        emeraldAccent: '#10b981',
+                        emeraldGlow: 'rgba(16, 185, 129, 0.15)',
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', 'monospace'],
+                        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27354a;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10b981;
+        }
+        .prose pre {
+            background-color: #0b111e;
+            border: 1px solid #1e293b;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            position: relative;
+        }
+        .prose code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+        }
+        .prose p {
+            margin-bottom: 0.75rem;
+            line-height: 1.65;
+        }
+        .prose ul, .prose ol {
+            margin-left: 1.25rem;
+            margin-bottom: 0.75rem;
+            list-style-type: disc;
+        }
+        .prose h1, .prose h2, .prose h3, .prose h4 {
+            color: #f1f5f9;
+            font-weight: 700;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .prose h1 { font-size: 1.4rem; }
+        .prose h2 { font-size: 1.25rem; }
+        .prose h3 { font-size: 1.1rem; }
+        .prose blockquote {
+            border-left: 3px solid #10b981;
+            padding-left: 0.75rem;
+            color: #94a3b8;
+            font-style: italic;
+            margin: 0.75rem 0;
+        }
+        .prose table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .prose th, .prose td {
+            border: 1px solid #334155;
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+        }
+        .prose th {
+            background-color: #1e293b;
+            color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="bg-obsidian text-slate-100 min-h-screen flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-300">
+
+    <!-- TOP HEADER -->
+    <header class="border-b border-gray-800 bg-panel/80 backdrop-blur sticky top-0 z-50 px-4 lg:px-6 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            
+            <!-- BRANDING (Verbatim user specification) -->
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                <h1 class="text-lg font-bold tracking-wide text-white">UNIVERSAL <span class="text-emerald-400">AI</span></h1>
+                <span class="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded border border-gray-700">Phase 1: Core Engine</span>
+            </div>
+
+            <!-- ENGINE TELEMETRY BAR & ACTIONS -->
+            <div class="flex items-center gap-3">
+                <!-- Engine Status Pill -->
+                <div id="engineStatusPill" class="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono bg-gray-900 border border-gray-800 text-gray-300">
+                    <span id="statusIndicatorDot" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                    <span id="statusText">Checking Engine...</span>
+                </div>
+
+                <!-- Multilingual Voice Selector (VOICE_MAP) -->
+                <div class="relative hidden md:flex items-center gap-1.5 bg-gray-900 border border-gray-800 rounded-lg px-2 py-1 text-xs">
+                    <span class="text-emerald-400">🎙️</span>
+                    <select id="headerVoiceSelect" onchange="syncVoice(this.value)" class="bg-transparent text-emerald-400 font-mono text-xs focus:outline-none cursor-pointer">
+                        <option value="auto">Auto (Sindhi/Urdu/English)</option>
+                        <option value="en-US-AndrewNeural">Andrew (US English Male)</option>
+                        <option value="en-US-AvaNeural">Ava (US English Female)</option>
+                        <option value="ur-PK-AsadNeural">Asad (Urdu / Sindhi Male)</option>
+                        <option value="ur-PK-UzmaNeural">Uzma (Urdu / Sindhi Female)</option>
+                        <option value="ar-SA-HamedNeural">Hamed (Arabic / Sindhi Accent)</option>
+                    </select>
+                </div>
+
+                <!-- Active Model Selector Dropdown -->
+                <div class="relative hidden sm:block">
+                    <select id="headerModelSelect" onchange="syncModel(this.value)" class="bg-gray-900 text-xs font-mono text-emerald-400 border border-gray-700 rounded-lg px-3 py-1.5 focus:outline-none focus:border-emerald-500 transition-colors">
+                        <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                        <option value="gemini-3-flash-preview">Gemini 3 Flash Preview</option>
+                        <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                        <option value="gemini-flash-lite-latest">Gemini Flash Lite Latest</option>
+                        <option value="gemini-flash-latest">Gemini Flash Latest</option>
+                        <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
+                    </select>
+                </div>
+
+                <!-- API Key Config Button -->
+                <button onclick="openApiKeyModal()" class="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all shadow-sm shadow-emerald-500/10">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                    <span id="headerKeyLabel">API Key</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- STUDIO NAVIGATION TABS -->
+    <nav class="bg-gray-950/90 border-b border-gray-800/80 px-4 lg:px-6">
+        <div class="max-w-7xl mx-auto flex items-center space-x-1 sm:space-x-4 overflow-x-auto py-2">
+            <button onclick="switchTab('chat')" id="tabBtn-chat" class="tab-btn active-tab flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                <span>Precision Chat & Voice</span>
+            </button>
+            <button onclick="switchTab('vision')" id="tabBtn-vision" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-900 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <span>Multimodal Vision Lab</span>
+            </button>
+            <button onclick="switchTab('prompt')" id="tabBtn-prompt" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-900 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span>Prompt Optimizer</span>
+            </button>
+            <button onclick="switchTab('code')" id="tabBtn-code" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-900 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                <span>Code Architect</span>
+            </button>
+            <button onclick="switchTab('ui-studio')" id="tab-btn-ui-studio" class="tab-btn px-4 py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-white transition flex items-center gap-2 shrink-0">
+                <span>🎨 Live UI Studio</span>
+                <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">Phase 3</span>
+            </button>
+            <button onclick="switchTab('settings')" id="tabBtn-settings" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-900 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span>Telemetry & Audio Config</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN STUDIO WORKSPACE CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6">
+
+        <!-- ========================================================================= -->
+        <!-- TAB 1: PRECISION CHAT & REASONER -->
+        <!-- ========================================================================= -->
+        <section id="tab-chat" class="space-y-4">
+            
+            <!-- Quick Action Toolbar -->
+            <div class="flex flex-wrap items-center justify-between gap-3 bg-panel/60 border border-gray-800 p-3 rounded-xl">
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleSystemPromptDrawer()" class="text-xs bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-700 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>System Persona</span>
+                        <span id="systemInstructionBadge" class="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+                    </button>
+                    <span class="text-xs text-gray-500">|</span>
+                    <!-- Thinking Toggle -->
+                    <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300">
+                        <input type="checkbox" id="thinkingToggle" class="accent-emerald-500 rounded">
+                        <span>Thinking Mode (Deep Reasoning)</span>
+                    </label>
+                </div>
+
+                <!-- Chat Controls -->
+                <div class="flex items-center gap-2">
+                    <button onclick="clearChatHistory()" class="text-xs text-gray-400 hover:text-red-400 px-2.5 py-1.5 rounded hover:bg-gray-900 border border-transparent hover:border-gray-800 transition-all" title="Clear conversation">
+                        Clear
+                    </button>
+                    <button onclick="exportChat('markdown')" class="text-xs text-gray-300 hover:text-emerald-400 px-2.5 py-1.5 rounded bg-gray-900 border border-gray-700 transition-all flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Export MD
+                    </button>
+                </div>
+            </div>
+
+            <!-- Collapsible System Prompt Drawer -->
+            <div id="systemPromptDrawer" class="hidden bg-surface border border-surfaceBorder rounded-xl p-4 transition-all">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">System Persona & Operational Directives</h3>
+                    <button onclick="toggleSystemPromptDrawer()" class="text-gray-400 hover:text-white text-xs">Close</button>
+                </div>
+                <textarea id="systemPromptInput" rows="3" class="w-full bg-obsidian border border-gray-800 rounded-lg p-2.5 text-xs font-mono text-gray-200 focus:outline-none focus:border-emerald-500" placeholder="Optional additional directives (automatically appended to UNIVERSAL AI Permanent Identity & Precision Core rules)..."></textarea>
+            </div>
+
+            <!-- Chat Messages Log Display -->
+            <div id="chatMessagesContainer" class="bg-panel border border-gray-800/80 rounded-2xl p-4 sm:p-6 min-h-[420px] max-h-[600px] overflow-y-auto space-y-4 shadow-inner">
+                <!-- Welcome greeting -->
+                <div class="bg-surface/50 border border-surfaceBorder/60 rounded-xl p-4 flex gap-4 items-start">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0">
+                        <span class="text-emerald-400 text-sm font-bold">U</span>
+                    </div>
+                    <div class="space-y-2 text-sm flex-1">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="font-semibold text-white">UNIVERSAL AI Core</span>
+                                <span class="text-xs font-mono bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/20">Ready</span>
+                                <span class="text-xs font-mono bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/20">Sindhi / Urdu / English Voice</span>
+                            </div>
+                            <button onclick="speakText('UNIVERSAL AI Precision Studio Core is online and operational. سنڌي ۽ اردو آواز پڻ فعال آهن.')" class="text-xs text-gray-400 hover:text-emerald-400 flex items-center gap-1 transition-colors" title="Play Voice greeting">
+                                <span>🔊</span> Play Audio
+                            </button>
+                        </div>
+                        <p class="text-gray-300">
+                            Welcome to the <strong>UNIVERSAL AI — Precision Studio Core</strong>. Features complete multimodal vision, prompt synthesis, code architecture, <strong>multilingual neural speech (Sindhi / Urdu / English)</strong>, and <strong>Gemini Voice Transcription</strong>.
+                        </p>
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <button onclick="usePromptPreset('سنڌي ٻوليءَ ۾ مصنوعي ذهانت جا فائدا ۽ اهميت بيان ڪريو.')" class="text-xs bg-gray-900 hover:bg-gray-800 text-emerald-300 border border-emerald-700/60 px-2.5 py-1 rounded-md transition-colors">
+                                🌙 سنڌي سوال: مصنوعي ذهانت
+                            </button>
+                            <button onclick="usePromptPreset('مصنوعی ذہانت کے مستقبل اور جدید ترین ماڈلز پر ایک جامع خلاصہ لکھیں۔')" class="text-xs bg-gray-900 hover:bg-gray-800 text-indigo-300 border border-indigo-700/60 px-2.5 py-1 rounded-md transition-colors">
+                                🇵🇰 اردو سوال: مصنوعی ذہانت
+                            </button>
+                            <button onclick="usePromptPreset('Analyze the time and space complexity of Dijkstra vs A* search in high-dimensional graph topologies.')" class="text-xs bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-700 px-2.5 py-1 rounded-md transition-colors">
+                                ⚡ Graph Algorithm Complexity
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input Bar with Microphone -->
+            <div class="bg-panel border border-gray-800 rounded-2xl p-3 shadow-lg">
+                <form id="chatForm" onsubmit="handleChatSubmit(event)" class="flex flex-col gap-2">
+                    <textarea id="chatInput" rows="2" placeholder="Send an instruction in English, Sindhi, or Urdu... Or click 🎙️ to record voice." class="w-full bg-transparent text-sm text-slate-100 placeholder-gray-500 resize-none focus:outline-none px-2 font-mono"></textarea>
+                    
+                    <div class="flex items-center justify-between pt-2 border-t border-gray-800/80">
+                        <div class="flex items-center gap-3 text-xs text-gray-400">
+                            <span id="chatTokenEstimate" class="font-mono">0 chars</span>
+                            <span>•</span>
+                            <span id="chatModelIndicator" class="text-emerald-400 font-mono">gemini-3.5-flash</span>
+                            <!-- Recording status badge -->
+                            <span id="recordingBadge" class="hidden text-xs text-red-400 font-semibold animate-pulse flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-red-500"></span> Recording... Click to Transcribe
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <!-- Mic Button for Gemini Transcription -->
+                            <button type="button" id="micBtn" onclick="toggleMicRecording()" class="p-2 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-emerald-400 transition-colors" title="Record Voice (English / Sindhi / Urdu) to Transcribe">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            </button>
+                            <!-- Submit Button -->
+                            <button type="submit" id="chatSubmitBtn" class="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold px-4 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-emerald-500/20">
+                                <span>Execute</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 2: MULTIMODAL VISION LAB -->
+        <!-- ========================================================================= -->
+        <section id="tab-vision" class="hidden space-y-6">
+            <div class="bg-panel border border-gray-800 rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <span>Multimodal Vision & Media Lab</span>
+                            <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">Native Vision</span>
+                        </h2>
+                        <p class="text-xs text-gray-400 mt-0.5">Upload visual assets, wireframes, architectural diagrams, or documents for deep structural analysis.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div id="visionDropZone" onclick="document.getElementById('visionFileInput').click()" class="border-2 border-dashed border-gray-700 hover:border-emerald-500/60 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer bg-obsidian/60 hover:bg-obsidian transition-all group min-h-[220px]">
+                            <input type="file" id="visionFileInput" accept="image/*" class="hidden" onchange="handleVisionFileSelect(event)">
+                            <div id="dropZonePlaceholder" class="text-center space-y-2">
+                                <div class="w-12 h-12 rounded-full bg-gray-800 group-hover:bg-emerald-500/20 flex items-center justify-center mx-auto text-gray-400 group-hover:text-emerald-400 transition-colors">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                                <p class="text-sm text-gray-300 font-medium">Click or Drag & Drop Image Here</p>
+                                <p class="text-xs text-gray-500">Supports PNG, JPG, WEBP, GIF (up to 20MB)</p>
+                            </div>
+                            <div id="dropZonePreview" class="hidden w-full relative">
+                                <img id="visionPreviewImg" src="" alt="Preview" class="max-h-60 mx-auto rounded-lg border border-gray-700 object-contain">
+                                <button onclick="removeVisionFile(event)" class="absolute top-2 right-2 bg-red-500/80 hover:bg-red-600 text-white rounded-full p-1 shadow">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase">Analysis Objective</label>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <label class="flex items-center gap-2 p-2 rounded-lg bg-surface border border-surfaceBorder cursor-pointer hover:border-emerald-500/50">
+                                    <input type="radio" name="visionMode" value="deep_inspection" checked class="accent-emerald-500">
+                                    <span>Deep Inspection</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg bg-surface border border-surfaceBorder cursor-pointer hover:border-emerald-500/50">
+                                    <input type="radio" name="visionMode" value="ui_to_code" class="accent-emerald-500">
+                                    <span>UI to Tailwind Code</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg bg-surface border border-surfaceBorder cursor-pointer hover:border-emerald-500/50">
+                                    <input type="radio" name="visionMode" value="ocr_extraction" class="accent-emerald-500">
+                                    <span>OCR & Extraction</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg bg-surface border border-surfaceBorder cursor-pointer hover:border-emerald-500/50">
+                                    <input type="radio" name="visionMode" value="creative_critique" class="accent-emerald-500">
+                                    <span>Creative Critique</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Specific Inspection Prompt</label>
+                            <textarea id="visionPromptInput" rows="2" class="w-full bg-obsidian border border-gray-800 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-emerald-500" placeholder="e.g. Inspect this diagram and describe data flow bottlenecks..."></textarea>
+                        </div>
+
+                        <button onclick="runVisionAnalysis()" id="visionAnalyzeBtn" class="w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                            <span>Execute Vision Analysis</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="bg-obsidian border border-gray-800 rounded-xl p-4 flex flex-col justify-between">
+                        <div class="flex items-center justify-between border-b border-gray-800 pb-2 mb-3">
+                            <span class="text-xs font-mono text-emerald-400">VISION TELEMETRY OUTPUT</span>
+                            <span id="visionLatencyBadge" class="text-xs font-mono text-gray-500">Idle</span>
+                        </div>
+                        <div id="visionOutputContent" class="prose prose-invert max-w-none text-xs flex-1 overflow-y-auto max-h-[460px] text-gray-300">
+                            <p class="text-gray-500 italic">Select or drop an image and click Execute Vision Analysis to inspect.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 3: PROMPT OPTIMIZER -->
+        <!-- ========================================================================= -->
+        <section id="tab-prompt" class="hidden space-y-6">
+            <div class="bg-panel border border-gray-800 rounded-2xl p-6">
+                <div class="mb-4">
+                    <h2 class="text-base font-bold text-white flex items-center gap-2">
+                        <span>Precision Prompt Optimizer</span>
+                        <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">5-Pillar Architecture</span>
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-0.5">Transform rough concepts into deterministic, production-grade system prompts with explicit schemas and boundary conditions.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Raw / Fuzzy Prompt</label>
+                            <textarea id="rawPromptInput" rows="5" class="w-full bg-obsidian border border-gray-800 rounded-xl p-3 text-xs font-mono text-gray-200 focus:outline-none focus:border-emerald-500" placeholder="e.g. Write a script that checks website speed and alerts me."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Target Domain / Core Objective (Optional)</label>
+                            <input id="promptObjectiveInput" type="text" class="w-full bg-obsidian border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-emerald-500" placeholder="e.g. Enterprise DevOps & Site Reliability Engineering">
+                        </div>
+
+                        <button onclick="runPromptOptimization()" id="optimizePromptBtn" class="w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                            <span>Synthesize Precision Prompt</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="bg-obsidian border border-gray-800 rounded-xl p-4 flex flex-col justify-between">
+                        <div class="flex items-center justify-between border-b border-gray-800 pb-2 mb-3">
+                            <span class="text-xs font-mono text-emerald-400">ENGINEERED SYSTEM PROMPT</span>
+                            <div class="flex items-center gap-2">
+                                <button onclick="copyOptimizedPrompt()" class="text-xs text-gray-400 hover:text-emerald-400 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                    Copy
+                                </button>
+                                <button onclick="deployToChatStudio()" class="text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded flex items-center gap-1">
+                                    <span>Deploy to Chat</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="optimizedPromptOutput" class="prose prose-invert max-w-none text-xs flex-1 overflow-y-auto max-h-[440px] text-gray-300">
+                            <p class="text-gray-500 italic">Enter a raw prompt on the left and synthesize to see the engineered blueprint.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 4: CODE ARCHITECT -->
+        <!-- ========================================================================= -->
+        <section id="tab-code" class="hidden space-y-6">
+            <div class="bg-panel border border-gray-800 rounded-2xl p-6">
+                <div class="mb-4">
+                    <h2 class="text-base font-bold text-white flex items-center gap-2">
+                        <span>Code Architect & Generation Engine</span>
+                        <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">Gemini Powered</span>
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-0.5">Generate production-grade software architectures, clean code implementations, and full unit test suites.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Target Language</label>
+                            <select id="codeLanguageSelect" class="w-full bg-obsidian border border-gray-800 rounded-xl px-3 py-2 text-xs font-mono text-emerald-400 focus:outline-none focus:border-emerald-500">
+                                <option value="python">Python 3.12+</option>
+                                <option value="typescript">TypeScript / Node.js</option>
+                                <option value="rust">Rust</option>
+                                <option value="go">Go (Golang)</option>
+                                <option value="sql">SQL / BigQuery</option>
+                                <option value="cpp">C++ 20</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Architecture Pattern / Stack</label>
+                            <input id="codeFrameworkInput" type="text" class="w-full bg-obsidian border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-emerald-500" placeholder="e.g. Hexagonal Architecture, FastAPI, Pydantic v2">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Functional Specification</label>
+                            <textarea id="codeSpecInput" rows="6" class="w-full bg-obsidian border border-gray-800 rounded-xl p-3 text-xs font-mono text-gray-200 focus:outline-none focus:border-emerald-500" placeholder="Describe the service, API endpoints, data models, and constraints..."></textarea>
+                        </div>
+
+                        <button onclick="runCodeArchitect()" id="codeArchitectBtn" class="w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                            <span>Synthesize Architecture & Code</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="lg:col-span-2 bg-obsidian border border-gray-800 rounded-xl p-4 flex flex-col justify-between min-h-[460px]">
+                        <div class="flex items-center justify-between border-b border-gray-800 pb-2 mb-3">
+                            <span class="text-xs font-mono text-emerald-400">ARCHITECTURAL BLUEPRINT & SOURCE</span>
+                            <button onclick="copyCodeBlueprint()" class="text-xs text-gray-400 hover:text-emerald-400 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                Copy All
+                            </button>
+                        </div>
+                        <div id="codeBlueprintOutput" class="prose prose-invert max-w-none text-xs flex-1 overflow-y-auto max-h-[520px] text-gray-300">
+                            <p class="text-gray-500 italic">Enter requirements on the left to generate architectural blueprints and code.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- PHASE 3: LIVE UI STUDIO (SPLIT-SCREEN CODE & PREVIEW) -->
+        <!-- ========================================================================= -->
+        <section id="tab-ui-studio" class="tab-content hidden h-[calc(100vh-145px)] min-h-[580px] flex flex-col gap-3">
+            <!-- Top Studio Toolbar -->
+            <div class="bg-[#161b22] border border-gray-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2 flex-1 min-w-[280px]">
+                    <input type="text" id="ui-prompt-input" placeholder="Describe any website, landing page, or dashboard to build live..." 
+                        class="flex-1 bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+                    <button onclick="generateLiveUI()" id="ui-build-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition whitespace-nowrap">
+                        ⚡ Build Live UI
+                    </button>
+                </div>
+                <!-- Quick Presets & Export -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="setUIPreset('ecommerce')" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-2.5 py-1.5 rounded border border-gray-700">🛒 E-Commerce Store</button>
+                    <button onclick="setUIPreset('news')" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-2.5 py-1.5 rounded border border-gray-700">📺 24/7 Live News Portal</button>
+                    <div class="h-4 w-[1px] bg-gray-700 mx-1"></div>
+                    <button onclick="setPreviewDevice('desktop')" id="ui-device-desktop" class="text-xs bg-gray-800 hover:bg-gray-700 text-emerald-400 px-2.5 py-1.5 rounded border border-gray-700">🖥️ Desktop</button>
+                    <button onclick="setPreviewDevice('mobile')" id="ui-device-mobile" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-2.5 py-1.5 rounded border border-gray-700">📱 Mobile</button>
+                    <button onclick="downloadUIZip()" class="text-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 px-3 py-1.5 rounded font-medium">⬇ Download ZIP</button>
+                </div>
+            </div>
+
+            <!-- Split Screen: Left Code Editor | Right Live Preview -->
+            <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
+                <!-- Left: Live HTML/Tailwind Source Code -->
+                <div class="bg-[#161b22] border border-gray-800 rounded-xl flex flex-col overflow-hidden min-h-[420px]">
+                    <div class="px-4 py-2 border-b border-gray-800 flex items-center justify-between bg-[#0d1117]/60">
+                        <span class="text-xs font-mono text-emerald-400">index.html (Editable Source)</span>
+                        <div class="flex gap-2">
+                            <button onclick="applyManualCode()" class="text-xs bg-gray-800 hover:bg-gray-700 text-white px-2.5 py-1 rounded">▶ Run Edited Code</button>
+                            <button onclick="copyUICode()" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-2.5 py-1 rounded">Copy HTML</button>
+                        </div>
+                    </div>
+                    <textarea id="ui-code-editor" spellcheck="false" placeholder="Generated HTML5 + Tailwind CSS code will appear here..."
+                        class="flex-1 w-full bg-[#0d1117] text-gray-200 font-mono text-xs p-4 focus:outline-none resize-none leading-relaxed"></textarea>
+                </div>
+
+                <!-- Right: Interactive Live Preview -->
+                <div class="bg-[#161b22] border border-gray-800 rounded-xl flex flex-col overflow-hidden min-h-[420px]">
+                    <div class="px-4 py-2 border-b border-gray-800 flex items-center justify-between bg-[#0d1117]/60">
+                        <span class="text-xs font-mono text-gray-300">LIVE INTERACTIVE PREVIEW</span>
+                        <span id="ui-build-status" class="text-xs text-gray-500">Ready</span>
+                    </div>
+                    <div class="flex-1 bg-gray-900 flex justify-center overflow-auto p-2">
+                        <iframe id="live-preview-frame" class="w-full h-full bg-white rounded-lg shadow-lg transition-all duration-300" sandbox="allow-scripts allow-same-origin allow-modals allow-forms"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 6: TELEMETRY & ENGINE CONFIG -->
+        <!-- ========================================================================= -->
+        <section id="tab-settings" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Engine Health & API Key Card -->
+                <div class="bg-panel border border-gray-800 rounded-2xl p-6 space-y-5">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <span>Core Engine Status</span>
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                        </h2>
+                        <p class="text-xs text-gray-400 mt-1">Live telemetry for Google GenAI SDK & Edge-TTS.</p>
+                    </div>
+
+                    <div class="space-y-3 font-mono text-xs">
+                        <div class="flex justify-between items-center p-2.5 rounded-lg bg-obsidian border border-gray-800">
+                            <span class="text-gray-400">SDK Status:</span>
+                            <span id="telemetrySdkStatus" class="text-emerald-400">Online</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2.5 rounded-lg bg-obsidian border border-gray-800">
+                            <span class="text-gray-400">Edge-TTS Engine:</span>
+                            <span id="telemetryTtsStatus" class="text-emerald-400">322+ Neural Voices</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2.5 rounded-lg bg-obsidian border border-gray-800">
+                            <span class="text-gray-400">Operating Mode:</span>
+                            <span id="telemetryMode" class="text-gray-200">Evaluating...</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2.5 rounded-lg bg-obsidian border border-gray-800">
+                            <span class="text-gray-400">Active Key:</span>
+                            <span id="telemetryKeyMask" class="text-gray-400">Not Configured</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2.5 rounded-lg bg-obsidian border border-gray-800">
+                            <span class="text-gray-400">Pipeline Latency:</span>
+                            <span id="telemetryPing" class="text-emerald-400">-- ms</span>
+                        </div>
+                    </div>
+
+                    <!-- API Key Form -->
+                    <div class="pt-4 border-t border-gray-800 space-y-3">
+                        <label class="block text-xs font-semibold text-gray-300 uppercase">Set Google Gemini API Key</label>
+                        <div class="relative">
+                            <input id="settingsApiKeyInput" type="password" placeholder="AIzaSy..." class="w-full bg-obsidian border border-gray-700 rounded-xl px-3 py-2 text-xs font-mono text-gray-200 focus:outline-none focus:border-emerald-500">
+                            <button onclick="toggleKeyVisibility()" type="button" class="absolute right-3 top-2.5 text-gray-500 hover:text-gray-300">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </button>
+                        </div>
+                        <button onclick="saveApiKeyFromSettings()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold py-2 rounded-xl text-xs transition-colors">
+                            Connect & Save API Key
+                        </button>
+                        <p class="text-[10px] text-gray-500 leading-tight">Key is stored in your local backend <code class="text-emerald-400">.env</code> file for persistence.</p>
+                    </div>
+                </div>
+
+                <!-- Hyperparameters & Audio Configuration -->
+                <div class="lg:col-span-2 bg-panel border border-gray-800 rounded-2xl p-6 space-y-6">
+                    <div>
+                        <h2 class="text-base font-bold text-white">Precision Hyperparameter & Audio Controls</h2>
+                        <p class="text-xs text-gray-400 mt-1">Calibrate model temperature, token limits, and neural speech synthesis parameters.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <label class="font-semibold text-gray-300">Temperature</label>
+                                <span id="tempValueDisplay" class="font-mono text-emerald-400">0.7</span>
+                            </div>
+                            <input id="tempSlider" type="range" min="0" max="2.0" step="0.05" value="0.7" oninput="document.getElementById('tempValueDisplay').textContent = this.value" class="w-full accent-emerald-500 bg-gray-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[11px] text-gray-500">Lower for deterministic, structured responses; higher for divergent creative exploration.</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <label class="font-semibold text-gray-300">Top-P (Nucleus Sampling)</label>
+                                <span id="topPValueDisplay" class="font-mono text-emerald-400">0.95</span>
+                            </div>
+                            <input id="topPSlider" type="range" min="0.1" max="1.0" step="0.05" value="0.95" oninput="document.getElementById('topPValueDisplay').textContent = this.value" class="w-full accent-emerald-500 bg-gray-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[11px] text-gray-500">Limits token candidate pool to cumulative probability threshold.</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <label class="font-semibold text-gray-300">Max Output Tokens</label>
+                                <span id="maxTokensValueDisplay" class="font-mono text-emerald-400">4096</span>
+                            </div>
+                            <input id="maxTokensSlider" type="range" min="256" max="8192" step="256" value="4096" oninput="document.getElementById('maxTokensValueDisplay').textContent = this.value" class="w-full accent-emerald-500 bg-gray-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[11px] text-gray-500">Maximum generation token limit per inference request.</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <label class="font-semibold text-gray-300">Thinking Budget (Tokens)</label>
+                                <span id="thinkingBudgetValueDisplay" class="font-mono text-emerald-400">1024</span>
+                            </div>
+                            <input id="thinkingBudgetSlider" type="range" min="0" max="8192" step="512" value="1024" oninput="document.getElementById('thinkingBudgetValueDisplay').textContent = this.value" class="w-full accent-emerald-500 bg-gray-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[11px] text-gray-500">Reserved reasoning budget for Gemini thinking models.</p>
+                        </div>
+                    </div>
+
+                    <!-- Neural Audio Synthesis Test -->
+                    <div class="pt-4 border-t border-gray-800 space-y-3">
+                        <h3 class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Multilingual Neural Audio Studio (VOICE_MAP)</h3>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button onclick="testNeuralAudio('sindhi')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+                                <span>🌙 Test Sindhi Voice</span>
+                            </button>
+                            <button onclick="testNeuralAudio('urdu')" class="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+                                <span>🇵🇰 Test Urdu Voice</span>
+                            </button>
+                            <button onclick="testNeuralAudio('english')" class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+                                <span>🌐 Test English Voice</span>
+                            </button>
+                            <span id="audioPlayingStatus" class="text-xs text-gray-400 font-mono"></span>
+                        </div>
+                    </div>
+
+                    <!-- Available Models Reference Matrix -->
+                    <div class="pt-4 border-t border-gray-800">
+                        <h3 class="text-xs font-semibold text-gray-300 uppercase tracking-wider mb-3">Loaded Studio Models</h3>
+                        <div id="modelsMatrixContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- API KEY MODAL DIALOG -->
+    <div id="apiKeyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div class="bg-panel border border-gray-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">Connect Gemini Engine</h3>
+                </div>
+                <button onclick="closeApiKeyModal()" class="text-gray-400 hover:text-white">✕</button>
+            </div>
+            <p class="text-xs text-gray-400">
+                Enter your Google AI Studio API key to activate live, unconstrained inference with Gemini 3.5 Flash and Pro.
+            </p>
+            <div class="space-y-2">
+                <input id="modalApiKeyInput" type="password" placeholder="AIzaSy..." class="w-full bg-obsidian border border-gray-700 rounded-xl px-3 py-2.5 text-xs font-mono text-gray-100 focus:outline-none focus:border-emerald-500">
+                <div class="flex justify-between items-center text-[11px]">
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-emerald-400 hover:underline">Get an API key at Google AI Studio →</a>
+                    <button type="button" onclick="pasteFromClipboard()" class="text-gray-400 hover:text-gray-200">Paste</button>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeApiKeyModal()" class="px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white">Cancel</button>
+                <button onclick="saveApiKeyFromModal()" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-gray-950">Connect</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-12 opacity-0 transition-all duration-300 bg-gray-900 border border-emerald-500/40 text-slate-100 text-xs px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2">
+        <span id="toastIcon" class="text-emerald-400">✓</span>
+        <span id="toastMsg">Notification message</span>
+    </div>
+
+    <!-- APPLICATION SCRIPTS -->
+    <script>
+        let activeModel = 'gemini-3.5-flash';
+        let activeVoice = 'auto';
+        let chatHistory = [];
+        let selectedVisionFile = null;
+        let systemStatus = null;
+        let currentAudio = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true
+        });
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await fetchStatus();
+            await fetchModels();
+            pingLatency();
+            setupTextareaAutoResize();
+        });
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                systemStatus = data;
+                updateStatusUI(data);
+            } catch (err) {
+                console.warn('Backend not responding yet:', err);
+                updateStatusUI({
+                    client_initialized: false,
+                    api_key_configured: false,
+                    mode: 'Offline / Standby'
+                });
+            }
+        }
+
+        async function fetchModels() {
+            try {
+                const res = await fetch('/api/models');
+                const data = await res.json();
+                renderModelsMatrix(data.models || []);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function updateStatusUI(data) {
+            const statusIndicatorDot = document.getElementById('statusIndicatorDot');
+            const statusText = document.getElementById('statusText');
+            const telemetrySdkStatus = document.getElementById('telemetrySdkStatus');
+            const telemetryMode = document.getElementById('telemetryMode');
+            const telemetryKeyMask = document.getElementById('telemetryKeyMask');
+            const headerKeyLabel = document.getElementById('headerKeyLabel');
+
+            if (data.client_initialized) {
+                statusIndicatorDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+                statusText.textContent = 'Live Gemini Engine';
+                headerKeyLabel.textContent = 'Key Active';
+                telemetryMode.textContent = 'Live Production Execution';
+                telemetryMode.className = 'text-emerald-400 font-bold';
+            } else if (data.api_key_configured) {
+                statusIndicatorDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+                statusText.textContent = 'Key Saved (Connecting)';
+                telemetryMode.textContent = 'Connecting...';
+            } else {
+                statusIndicatorDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+                statusText.textContent = 'Precision Simulation Mode';
+                headerKeyLabel.textContent = 'Set API Key';
+                telemetryMode.textContent = 'Precision Simulation & Evaluation';
+                telemetryMode.className = 'text-amber-400';
+            }
+
+            telemetrySdkStatus.textContent = data.sdk_installed ? 'Google GenAI SDK 2.34+ Active' : 'SDK Pending';
+            telemetryKeyMask.textContent = data.masked_key || 'Not Configured (Simulation Mode)';
+        }
+
+        async function pingLatency() {
+            const start = performance.now();
+            try {
+                await fetch('/health');
+                const latency = Math.round(performance.now() - start);
+                const pingEl = document.getElementById('telemetryPing');
+                if (pingEl) pingEl.textContent = `${latency} ms`;
+            } catch (e) {
+                const pingEl = document.getElementById('telemetryPing');
+                if (pingEl) pingEl.textContent = 'Offline';
+            }
+        }
+
+        function switchTab(tabId) {
+            const tabs = ['chat', 'vision', 'prompt', 'code', 'ui-studio', 'settings'];
+            tabs.forEach(t => {
+                const sec = document.getElementById(`tab-${t}`);
+                const btn = document.getElementById(`tabBtn-${t}`) || document.getElementById(`tab-btn-${t}`);
+                if (!sec || !btn) return;
+                if (t === tabId) {
+                    sec.classList.remove('hidden');
+                    btn.classList.add('active-tab', 'text-emerald-400', 'bg-emerald-500/10', 'border', 'border-emerald-500/30');
+                    btn.classList.remove('text-gray-400');
+                } else {
+                    sec.classList.add('hidden');
+                    btn.classList.remove('active-tab', 'text-emerald-400', 'bg-emerald-500/10', 'border', 'border-emerald-500/30');
+                    btn.classList.add('text-gray-400');
+                }
+            });
+        }
+
+        function syncModel(modelId) {
+            activeModel = modelId;
+            document.getElementById('headerModelSelect').value = modelId;
+            document.getElementById('chatModelIndicator').textContent = modelId;
+            showToast(`Target Model: ${modelId}`);
+        }
+
+        function syncVoice(voiceId) {
+            activeVoice = voiceId;
+            document.getElementById('headerVoiceSelect').value = voiceId;
+            showToast(`Voice Profile: ${voiceId}`);
+        }
+
+        // =========================================================================
+        // EDGE-TTS AUDIO SYNTHESIS & PLAYBACK
+        // =========================================================================
+        async function speakText(text, explicitVoice = null) {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            showToast('Synthesizing audio...');
+            try {
+                const voiceChoice = explicitVoice || (activeVoice === 'auto' ? null : activeVoice);
+                const res = await fetch('/api/tts/file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text.slice(0, 1500),
+                        voice: voiceChoice
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Audio synthesis failed');
+                
+                currentAudio = new Audio(data.audio_url);
+                currentAudio.play();
+                showToast(`Playing speech (${data.voice})`);
+            } catch (err) {
+                showToast(`Audio Error: ${err.message}`);
+            }
+        }
+
+        async function testNeuralAudio(type) {
+            const statusEl = document.getElementById('audioPlayingStatus');
+            statusEl.textContent = 'Generating speech with Edge-TTS...';
+            try {
+                if (type === 'sindhi') {
+                    await speakText('سنڌ سلامت ساٿ سلامت. هي يونيورسل اي آءِ جو سنڌي آواز آهي.', 'ur-PK-AsadNeural');
+                } else if (type === 'urdu') {
+                    await speakText('یونیورسل اے آئی کور میں خوش آمدید۔ اردو اور سندھی آوازیں مکمل فعال ہیں۔', 'ur-PK-UzmaNeural');
+                } else {
+                    await speakText('Welcome to Universal AI Precision Studio Core. Neural voice synthesis is operational.', 'en-US-AndrewNeural');
+                }
+                statusEl.textContent = 'Playback active.';
+            } catch (e) {
+                statusEl.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        // =========================================================================
+        // VOICE INPUT & GEMINI TRANSCRIPTION (MICROPHONE)
+        // =========================================================================
+        async function toggleMicRecording() {
+            const micBtn = document.getElementById('micBtn');
+            const recordingBadge = document.getElementById('recordingBadge');
+
+            if (!isRecording) {
+                // Start Recording
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) audioChunks.push(e.data);
+                    };
+
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        await uploadAndTranscribe(audioBlob);
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    micBtn.classList.add('bg-red-500/20', 'border-red-500', 'text-red-400', 'animate-pulse');
+                    recordingBadge.classList.remove('hidden');
+                    showToast('Recording voice... Speak now in English, Sindhi, or Urdu');
+                } catch (err) {
+                    showToast('Microphone access denied: ' + err.message);
+                }
+            } else {
+                // Stop Recording
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
+                isRecording = false;
+                micBtn.classList.remove('bg-red-500/20', 'border-red-500', 'text-red-400', 'animate-pulse');
+                recordingBadge.classList.add('hidden');
+                showToast('Transcribing audio via Gemini Multimodal...');
+            }
+        }
+
+        async function uploadAndTranscribe(blob) {
+            const formData = new FormData();
+            formData.append('audio', blob, 'voice_input.webm');
+
+            try {
+                const res = await fetch('/api/audio/transcribe', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.transcription) {
+                    const chatInput = document.getElementById('chatInput');
+                    chatInput.value = (chatInput.value ? chatInput.value + ' ' : '') + data.transcription;
+                    updateTokenEstimate();
+                    chatInput.focus();
+                    showToast('Voice Transcribed Successfully!');
+                }
+            } catch (err) {
+                showToast('Transcription failed: ' + err.message);
+            }
+        }
+
+        // =========================================================================
+        // CHAT & REASONING ENGINE
+        // =========================================================================
+        function toggleSystemPromptDrawer() {
+            const drawer = document.getElementById('systemPromptDrawer');
+            drawer.classList.toggle('hidden');
+        }
+
+        function usePromptPreset(promptText) {
+            document.getElementById('chatInput').value = promptText;
+            document.getElementById('chatInput').focus();
+            updateTokenEstimate();
+        }
+
+        function setupTextareaAutoResize() {
+            const chatInput = document.getElementById('chatInput');
+            chatInput.addEventListener('input', () => {
+                updateTokenEstimate();
+            });
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleChatSubmit(e);
+                }
+            });
+        }
+
+        function updateTokenEstimate() {
+            const text = document.getElementById('chatInput').value;
+            const chars = text.length;
+            const estTokens = Math.ceil(chars / 4);
+            document.getElementById('chatTokenEstimate').textContent = `${chars} chars (~${estTokens} tokens)`;
+        }
+
+        async function handleChatSubmit(e) {
+            if (e) e.preventDefault();
+            const inputEl = document.getElementById('chatInput');
+            const prompt = inputEl.value.trim();
+            if (!prompt) return;
+
+            const submitBtn = document.getElementById('chatSubmitBtn');
+
+            appendChatMessage('user', prompt);
+            chatHistory.push({ role: 'user', content: prompt });
+            inputEl.value = '';
+            updateTokenEstimate();
+
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50');
+
+            const placeholderId = 'msg-' + Date.now();
+            appendLoadingAssistantMessage(placeholderId);
+
+            try {
+                const systemPrompt = document.getElementById('systemPromptInput').value.trim() || undefined;
+                const isThinking = document.getElementById('thinkingToggle').checked;
+                const temp = parseFloat(document.getElementById('tempSlider').value);
+                const topP = parseFloat(document.getElementById('topPSlider').value);
+                const maxTokens = parseInt(document.getElementById('maxTokensSlider').value);
+                const thinkingBudget = isThinking ? parseInt(document.getElementById('thinkingBudgetSlider').value) : undefined;
+
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        model: activeModel,
+                        system_instruction: systemPrompt,
+                        temperature: temp,
+                        top_p: topP,
+                        max_output_tokens: maxTokens,
+                        thinking_budget: thinkingBudget,
+                        history: chatHistory.slice(0, -1)
+                    })
+                });
+
+                const data = await response.json();
+                updateAssistantMessage(placeholderId, data.text || 'No response generated.', data.latency_ms, data.mode);
+                chatHistory.push({ role: 'model', content: data.text });
+            } catch (err) {
+                updateAssistantMessage(placeholderId, `⚠️ Execution error: ${err.message}`, 0, 'Error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50');
+            }
+        }
+
+        function appendChatMessage(role, text) {
+            const container = document.getElementById('chatMessagesContainer');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'flex gap-3 justify-end items-start';
+            msgDiv.innerHTML = `
+                <div class="max-w-[85%] bg-emerald-500/10 border border-emerald-500/30 rounded-2xl rounded-tr-none px-4 py-3 text-sm text-emerald-100 font-mono shadow-sm">
+                    ${escapeHtml(text)}
+                </div>
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0 text-emerald-400 text-xs font-bold">
+                    You
+                </div>
+            `;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendLoadingAssistantMessage(id) {
+            const container = document.getElementById('chatMessagesContainer');
+            const msgDiv = document.createElement('div');
+            msgDiv.id = id;
+            msgDiv.className = 'flex gap-3 justify-start items-start';
+            msgDiv.innerHTML = `
+                <div class="w-7 h-7 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-center shrink-0 text-emerald-400 text-xs font-bold">
+                    U
+                </div>
+                <div class="max-w-[90%] bg-surface/80 border border-surfaceBorder rounded-2xl rounded-tl-none px-4 py-3 text-sm text-gray-200">
+                    <div class="flex items-center gap-2 text-xs text-gray-400">
+                        <div class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
+                        <span class="font-mono">Precision Engine Reasoning...</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateAssistantMessage(id, markdownText, latencyMs, mode) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const parsedHtml = marked.parse(markdownText);
+            const encodedText = encodeURIComponent(markdownText);
+            el.innerHTML = `
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0 text-emerald-400 text-xs font-bold">
+                    U
+                </div>
+                <div class="max-w-[90%] bg-surface/90 border border-surfaceBorder rounded-2xl rounded-tl-none p-4 text-sm text-gray-200 space-y-2 shadow-sm">
+                    <div class="flex items-center justify-between text-[11px] font-mono border-b border-gray-800 pb-1.5 mb-2 text-gray-400">
+                        <span class="text-emerald-400 font-semibold">${activeModel}</span>
+                        <div class="flex items-center gap-3">
+                            <span>${latencyMs ? latencyMs + ' ms' : ''} ${mode ? '• ' + mode : ''}</span>
+                            <button onclick="speakText(decodeURIComponent('${encodedText}'))" class="text-gray-400 hover:text-emerald-400 flex items-center gap-1 font-sans transition-colors" title="Read aloud (Auto-Detect Sindhi/Urdu/English)">
+                                <span>🔊</span> Speak
+                            </button>
+                        </div>
+                    </div>
+                    <div class="prose prose-invert max-w-none text-xs sm:text-sm">
+                        ${parsedHtml}
+                    </div>
+                </div>
+            `;
+            const container = document.getElementById('chatMessagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearChatHistory() {
+            chatHistory = [];
+            const container = document.getElementById('chatMessagesContainer');
+            container.innerHTML = `
+                <div class="text-center py-8 text-xs text-gray-500">
+                    Conversation reset. Engine ready for new directives.
+                </div>
+            `;
+            showToast('Chat history cleared');
+        }
+
+        function exportChat(format) {
+            if (chatHistory.length === 0) {
+                showToast('No messages to export');
+                return;
+            }
+            let content = '';
+            if (format === 'markdown') {
+                content = `# UNIVERSAL AI — Precision Studio Chat Export\nModel: ${activeModel}\n\n`;
+                chatHistory.forEach(msg => {
+                    content += `### ${msg.role === 'user' ? 'User' : 'UNIVERSAL AI'}\n\n${msg.content}\n\n---\n\n`;
+                });
+                downloadFile(content, `universal_ai_chat_${Date.now()}.md`, 'text/markdown');
+            }
+        }
+
+        // =========================================================================
+        // MULTIMODAL VISION LAB
+        // =========================================================================
+        function handleVisionFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            selectedVisionFile = file;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                document.getElementById('visionPreviewImg').src = event.target.result;
+                document.getElementById('dropZonePlaceholder').classList.add('hidden');
+                document.getElementById('dropZonePreview').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeVisionFile(e) {
+            e.stopPropagation();
+            selectedVisionFile = null;
+            document.getElementById('visionFileInput').value = '';
+            document.getElementById('visionPreviewImg').src = '';
+            document.getElementById('dropZonePreview').classList.add('hidden');
+            document.getElementById('dropZonePlaceholder').classList.remove('hidden');
+        }
+
+        async function runVisionAnalysis() {
+            if (!selectedVisionFile) {
+                showToast('Please select or drop an image first');
+                return;
+            }
+
+            const btn = document.getElementById('visionAnalyzeBtn');
+            const outputEl = document.getElementById('visionOutputContent');
+            const latencyBadge = document.getElementById('visionLatencyBadge');
+            const prompt = document.getElementById('visionPromptInput').value.trim() || 'Analyze this image in detail';
+            const mode = document.querySelector('input[name="visionMode"]:checked').value;
+
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            latencyBadge.textContent = 'Processing optical stream...';
+            outputEl.innerHTML = '<div class="flex items-center gap-2 text-emerald-400"><span class="animate-spin">⚙</span> Executing precision vision deconstruction...</div>';
+
+            const formData = new FormData();
+            formData.append('image', selectedVisionFile);
+            formData.append('prompt', prompt);
+            formData.append('mode', mode);
+            formData.append('model', activeModel);
+
+            try {
+                const res = await fetch('/api/vision', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                latencyBadge.textContent = `${data.latency_ms || 0} ms • ${data.model || activeModel}`;
+                outputEl.innerHTML = marked.parse(data.analysis || 'No analysis output returned.');
+            } catch (err) {
+                outputEl.innerHTML = `<span class="text-red-400">Failed: ${err.message}</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+            }
+        }
+
+        // =========================================================================
+        // PROMPT OPTIMIZER
+        // =========================================================================
+        let lastOptimizedPrompt = '';
+
+        async function runPromptOptimization() {
+            const rawPrompt = document.getElementById('rawPromptInput').value.trim();
+            if (!rawPrompt) {
+                showToast('Please enter a raw prompt first');
+                return;
+            }
+
+            const objective = document.getElementById('promptObjectiveInput').value.trim();
+            const btn = document.getElementById('optimizePromptBtn');
+            const outputEl = document.getElementById('optimizedPromptOutput');
+
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            outputEl.innerHTML = '<div class="text-emerald-400 animate-pulse font-mono">Synthesizing 5-pillar precision prompt blueprint...</div>';
+
+            try {
+                const res = await fetch('/api/prompt/optimize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: rawPrompt,
+                        objective: objective,
+                        model: activeModel
+                    })
+                });
+                const data = await res.json();
+                lastOptimizedPrompt = data.optimized_prompt || '';
+                outputEl.innerHTML = marked.parse(lastOptimizedPrompt);
+                showToast('Prompt Synthesized');
+            } catch (err) {
+                outputEl.innerHTML = `<span class="text-red-400">Error: ${err.message}</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+            }
+        }
+
+        function copyOptimizedPrompt() {
+            if (!lastOptimizedPrompt) {
+                showToast('No prompt to copy');
+                return;
+            }
+            navigator.clipboard.writeText(lastOptimizedPrompt);
+            showToast('Copied to clipboard');
+        }
+
+        function deployToChatStudio() {
+            if (!lastOptimizedPrompt) {
+                showToast('Synthesize a prompt first');
+                return;
+            }
+            switchTab('chat');
+            document.getElementById('systemPromptInput').value = lastOptimizedPrompt;
+            document.getElementById('systemPromptDrawer').classList.remove('hidden');
+            showToast('Deployed to Chat System Persona');
+        }
+
+        // =========================================================================
+        // CODE ARCHITECT
+        // =========================================================================
+        let lastCodeBlueprint = '';
+
+        async function runCodeArchitect() {
+            const spec = document.getElementById('codeSpecInput').value.trim();
+            if (!spec) {
+                showToast('Please enter a functional specification');
+                return;
+            }
+
+            const language = document.getElementById('codeLanguageSelect').value;
+            const framework = document.getElementById('codeFrameworkInput').value.trim();
+            const btn = document.getElementById('codeArchitectBtn');
+            const outputEl = document.getElementById('codeBlueprintOutput');
+
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            outputEl.innerHTML = '<div class="text-emerald-400 animate-pulse font-mono">Architecting system & generating production implementation...</div>';
+
+            try {
+                const res = await fetch('/api/code/architect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        specification: spec,
+                        language: language,
+                        framework: framework,
+                        model: 'gemini-3.1-pro-preview'
+                    })
+                });
+                const data = await res.json();
+                lastCodeBlueprint = data.code_blueprint || '';
+                outputEl.innerHTML = marked.parse(lastCodeBlueprint);
+                showToast('Code Blueprint Synthesized');
+            } catch (err) {
+                outputEl.innerHTML = `<span class="text-red-400">Error: ${err.message}</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+            }
+        }
+
+        function copyCodeBlueprint() {
+            if (!lastCodeBlueprint) {
+                showToast('No blueprint to copy');
+                return;
+            }
+            navigator.clipboard.writeText(lastCodeBlueprint);
+            showToast('Copied to clipboard');
+        }
+
+        // =========================================================================
+        // PHASE 3: LIVE UI STUDIO (SPLIT-SCREEN BUILDER & ZIP EXPORT)
+        // =========================================================================
+        function setUIPreset(type) {
+            const input = document.getElementById('ui-prompt-input');
+            if (type === 'ecommerce') {
+                input.value = "Create a modern, high-converting Amazon-style e-commerce store homepage for Bazar-e-Mustafa with UAE & KSA shipping badges, product grid, search bar, and shopping cart drawer.";
+            } else if (type === 'news') {
+                input.value = "Build a 24/7 live breaking news TV portal homepage for PNN (Pakistan National News Network) with live stream player frame, breaking news ticker, top headlines, and multi-language switcher.";
+            }
+        }
+
+        async function generateLiveUI() {
+            const prompt = document.getElementById('ui-prompt-input').value.trim();
+            if (!prompt) {
+                showToast('Please enter a prompt to build Live UI');
+                return;
+            }
+            const btn = document.getElementById('ui-build-btn');
+            const status = document.getElementById('ui-build-status');
+            const editor = document.getElementById('ui-code-editor');
+            const frame = document.getElementById('live-preview-frame');
+            const model = activeModel || document.getElementById('headerModelSelect')?.value || 'gemini-3.5-flash';
+
+            btn.disabled = true;
+            btn.innerText = "⏳ Building UI...";
+            status.innerText = "Generating responsive HTML & Tailwind...";
+
+            try {
+                const res = await fetch('/api/ui-builder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt, model })
+                });
+                const data = await res.json();
+                if (data.html) {
+                    editor.value = data.html;
+                    frame.srcdoc = data.html;
+                    status.innerText = "Live Rendered ✓";
+                    showToast('Live UI built & rendered!');
+                } else {
+                    status.innerText = data.error || "No HTML returned";
+                    showToast(data.error || 'Failed to generate UI');
+                }
+            } catch (e) {
+                status.innerText = "Error generating UI";
+                showToast(`UI Builder Error: ${e.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "⚡ Build Live UI";
+            }
+        }
+
+        function applyManualCode() {
+            const code = document.getElementById('ui-code-editor').value;
+            document.getElementById('live-preview-frame').srcdoc = code;
+            document.getElementById('ui-build-status').innerText = "Edited Code Rendered ✓";
+        }
+
+        function setPreviewDevice(mode) {
+            const frame = document.getElementById('live-preview-frame');
+            const deskBtn = document.getElementById('ui-device-desktop');
+            const mobBtn = document.getElementById('ui-device-mobile');
+            frame.style.width = mode === 'mobile' ? '390px' : '100%';
+            if (deskBtn && mobBtn) {
+                deskBtn.classList.toggle('text-emerald-400', mode === 'desktop');
+                deskBtn.classList.toggle('text-gray-300', mode !== 'desktop');
+                mobBtn.classList.toggle('text-emerald-400', mode === 'mobile');
+                mobBtn.classList.toggle('text-gray-300', mode !== 'mobile');
+            }
+        }
+
+        function copyUICode() {
+            const code = document.getElementById('ui-code-editor').value;
+            if (!code.trim()) {
+                showToast('No HTML to copy');
+                return;
+            }
+            navigator.clipboard.writeText(code);
+            document.getElementById('ui-build-status').innerText = "HTML Copied!";
+            showToast('HTML copied to clipboard');
+        }
+
+        async function downloadUIZip() {
+            const html = document.getElementById('ui-code-editor').value;
+            if (!html.trim()) {
+                showToast('Generate or paste HTML before exporting ZIP');
+                return;
+            }
+            try {
+                const res = await fetch('/api/ui-builder/zip', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ html, project_name: "universal_ai_website" })
+                });
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "universal_ai_website.zip";
+                a.click();
+                window.URL.revokeObjectURL(url);
+                showToast('Downloaded universal_ai_website.zip');
+            } catch (e) {
+                showToast(`ZIP Export failed: ${e.message}`);
+            }
+        }
+
+        // =========================================================================
+        // API KEY MANAGEMENT & MODAL
+        // =========================================================================
+        function openApiKeyModal() {
+            document.getElementById('apiKeyModal').classList.remove('hidden');
+            document.getElementById('modalApiKeyInput').focus();
+        }
+
+        function closeApiKeyModal() {
+            document.getElementById('apiKeyModal').classList.add('hidden');
+        }
+
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('modalApiKeyInput').value = text;
+            } catch (e) {
+                showToast('Unable to read clipboard');
+            }
+        }
+
+        async function saveApiKeyFromModal() {
+            const key = document.getElementById('modalApiKeyInput').value.trim();
+            if (!key) {
+                showToast('Please enter an API key');
+                return;
+            }
+            await configureApiKey(key);
+            closeApiKeyModal();
+        }
+
+        async function saveApiKeyFromSettings() {
+            const key = document.getElementById('settingsApiKeyInput').value.trim();
+            if (!key) {
+                showToast('Please enter an API key');
+                return;
+            }
+            await configureApiKey(key);
+        }
+
+        async function configureApiKey(key) {
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_key: key })
+                });
+                const data = await res.json();
+                await fetchStatus();
+                showToast(data.client_ready ? 'Engine Connected Successfully!' : 'Key Saved to .env');
+            } catch (err) {
+                showToast(`Failed: ${err.message}`);
+            }
+        }
+
+        function toggleKeyVisibility() {
+            const input = document.getElementById('settingsApiKeyInput');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function renderModelsMatrix(models) {
+            const container = document.getElementById('modelsMatrixContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            models.forEach(m => {
+                const card = document.createElement('div');
+                card.className = 'p-3 rounded-xl bg-obsidian border border-gray-800 space-y-1 hover:border-gray-700 transition-colors';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-white">${m.name}</span>
+                        <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">${m.tag}</span>
+                    </div>
+                    <p class="text-[11px] text-gray-400">${m.description}</p>
+                    <div class="flex gap-2 pt-1 text-[10px] font-mono text-gray-500">
+                        <span>Tokens: ${m.max_tokens}</span>
+                        ${m.supports_thinking ? '• <span class="text-indigo-400">Reasoning</span>' : ''}
+                        ${m.supports_vision ? '• <span class="text-emerald-400">Vision</span>' : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.remove('translate-y-12', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-12', 'opacity-0');
+            }, 3000);
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
